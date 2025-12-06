@@ -19,18 +19,18 @@ import androidx.navigation.compose.rememberNavController
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.loganes.finace.UI.AddTransactionScreen
 import com.loganes.finace.data.AppDatabase
 import com.loganes.finace.data.AutoBackupWorker
 import com.loganes.finace.UI.DashboardScreen
+import com.loganes.finace.UI.EmployeeListScreen
+import com.loganes.finace.UI.TrashbinScreen
 
-import com.loganes.finace.ui.theme.AddTransactionScreen
 import com.loganes.finace.ui.theme.EditTransactionScreen
-import com.loganes.finace.ui.theme.EmployeeListScreen
 import com.loganes.finace.ui.theme.LoginScreen
 import com.loganes.finace.ui.theme.MyApplicationTheme
 import com.loganes.finace.ui.theme.ReportScreen
 import com.loganes.finace.ui.theme.SettingsScreen
-import com.loganes.finace.ui.theme.TrashbinScreen
 import com.loganes.finace.viewmodel.TransactionViewModel
 import com.loganes.finace.viewmodel.TransactionViewModelFactory
 import java.util.Calendar

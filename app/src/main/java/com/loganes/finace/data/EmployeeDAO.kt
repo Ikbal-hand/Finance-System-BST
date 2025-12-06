@@ -1,6 +1,7 @@
 package com.loganes.finace.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -22,4 +23,7 @@ interface EmployeeDao {
     // Update tanggal bayar terakhir (Saat tombol 'Bayar' ditekan)
     @Query("UPDATE employees SET lastPaidDate = :date WHERE id = :id")
     suspend fun updateLastPaidDate(id: Int, date: String)
+    // Tambahkan fungsi delete
+    @Delete
+    suspend fun deleteEmployee(employee: Employee)
 }

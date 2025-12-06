@@ -142,6 +142,12 @@ class TransactionViewModel(
             dao.insert(transaction)
         }
     }
+    // Di TransactionViewModel.kt
+    fun deleteEmployee(employee: Employee) {
+        viewModelScope.launch {
+            employeeDao.deleteEmployee(employee) // Pastikan DAO punya fungsi @Delete
+        }
+    }
 
     // Logic Warna Status Gaji (Hijau/Kuning/Merah)
     @RequiresApi(Build.VERSION_CODES.O)
