@@ -128,7 +128,7 @@ Contact the Lead Developer to obtain these configuration files.
 
 ## 🔒 Copyright & Licensing
 
-© 2024 CV. Bangun Sejahtera & Loganes IT Team.  
+© 2025 CV. BERKARYA SATU TUJUAN & Loganes IT Team.  
 All rights reserved.
 
 This application is **Proprietary Software**.  
