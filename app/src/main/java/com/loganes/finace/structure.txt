@@ -1,0 +1,40 @@
+.
+├── data
+│   ├── local
+│   │   └── SecurityManager.kt
+│   ├── model
+│   │   ├── Employee.kt
+│   │   └── Transaction.kt
+│   └── repository
+│       └── FirestoreRepository.kt
+├── MainActivity.kt
+├── structure.txt
+├── ui
+│   ├── screen
+│   │   ├── auth
+│   │   │   └── LoginScreen.kt
+│   │   ├── dashboard
+│   │   │   └── DashboardScreen.kt
+│   │   ├── employee
+│   │   │   └── EmployeeListScreen.kt
+│   │   └── settings
+│   │       ├── ReportScreen.kt
+│   │       ├── SettingsScreen.kt
+│   │       └── TrashbinScreen.kt
+│   ├── theme
+│   │   ├── Color.kt
+│   │   ├── ModernComponents.kt
+│   │   ├── Theme.kt
+│   │   └── Type.kt
+│   └── transaction
+│       ├── AddTransactionScreen.kt
+│       └── EditTransactionScreen.kt
+├── utils
+│   ├── FinanceCalculator.kt
+│   ├── PdfHelper.kt
+│   └── SessionManager.kt
+└── viewmodel
+    ├── TransactionViewModelFactory.kt
+    └── TransactionViewModel.kt
+
+15 directories, 23 files

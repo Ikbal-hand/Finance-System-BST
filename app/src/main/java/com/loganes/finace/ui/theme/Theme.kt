@@ -21,7 +21,7 @@ private val DarkColorScheme = darkColorScheme(
     primary = BlueCyan,
     secondary = BlueStart,
     tertiary = GreenIncome,
-    background = Color(0xFF121212), // Hitam pekat
+    background = Color(0xFF121212),
     surface = Color(0xFF1E1E1E),
     onPrimary = Color.Black,
     onSecondary = Color.White,
@@ -31,24 +31,23 @@ private val DarkColorScheme = darkColorScheme(
 
 // Skema Warna Terang (Light Mode - Default)
 private val LightColorScheme = lightColorScheme(
-    primary = BlueStart,      // Warna Tombol & Header
-    secondary = BlueEnd,      // Warna Aksen
+    primary = BlueStart,
+    secondary = BlueEnd,
     tertiary = BlueCyan,
+    background = GrayBackground,
+    surface = Color.White,
 
-    background = GrayBackground, // Abu-abu muda modern
-    surface = Color.White,       // Warna Kartu
-
-    onPrimary = Color.White,     // Warna teks di atas tombol biru
+    onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
-    onBackground = TextDark,     // Warna teks utama
+    onBackground = TextDark,
     onSurface = TextDark,
 )
 
 @Composable
 fun MyApplicationTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color tersedia di Android 12+, kita matikan dulu agar desain konsisten biru
+    // Matikan dynamic color agar warna BIRU brand kita tetap muncul (bukan warna wallpaper HP)
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -65,7 +64,7 @@ fun MyApplicationTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Ubah warna Status Bar (Atas Sinyal/Baterai) jadi Biru
+            // Ubah warna Status Bar HP jadi Biru
             window.statusBarColor = colorScheme.primary.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
@@ -73,7 +72,7 @@ fun MyApplicationTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Pastikan file Type.kt ada (default bawaan project)
+        typography = Typography,
         content = content
     )
 }
