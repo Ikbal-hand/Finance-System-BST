@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.loganes.finace" />
+                  <option name="mobileSdkAppId" value="1:49252510022:android:33eb43fba309fbde08dd47" />
+                  <option name="projectId" value="financebst-6919d" />
+                  <option name="projectNumber" value="49252510022" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

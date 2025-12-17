@@ -1,72 +1,83 @@
-// File: MainActivity.kt
-
 package com.loganes.finace
-
 
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import androidx.fragment.app.FragmentActivity
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import com.loganes.finace.UI.AddTransactionScreen
-import com.loganes.finace.data.AppDatabase
-import com.loganes.finace.data.AutoBackupWorker
-import com.loganes.finace.UI.DashboardScreen
-import com.loganes.finace.UI.EmployeeListScreen
-import com.loganes.finace.UI.TrashbinScreen
-
-import com.loganes.finace.ui.theme.EditTransactionScreen
-import com.loganes.finace.ui.theme.LoginScreen
+import androidx.navigation.navArgument
+import com.google.firebase.FirebaseApp
+import com.loganes.finace.data.repository.FirestoreRepository
+import com.loganes.finace.ui.screen.auth.LoginScreen
+import com.loganes.finace.ui.screen.dashboard.DashboardScreen
+import com.loganes.finace.ui.screen.employee.EmployeeListScreen
+import com.loganes.finace.ui.screen.settings.ReportScreen
+import com.loganes.finace.ui.screen.settings.SettingsScreen
+import com.loganes.finace.ui.screen.settings.TrashbinScreen
+import com.loganes.finace.ui.screen.transaction.AddTransactionScreen
+import com.loganes.finace.ui.screen.transaction.EditTransactionScreen
 import com.loganes.finace.ui.theme.MyApplicationTheme
-import com.loganes.finace.ui.theme.ReportScreen
-import com.loganes.finace.ui.theme.SettingsScreen
 import com.loganes.finace.viewmodel.TransactionViewModel
 import com.loganes.finace.viewmodel.TransactionViewModelFactory
-import java.util.Calendar
-import java.util.concurrent.TimeUnit
 
-class MainActivity : FragmentActivity() {
+class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. Siapkan Database
-        val database = AppDatabase.getDatabase(this)
-        val dao = database.transactionDao()
-        val employeeDao = database.employeeDao() // <-- Tambahkan ini
-        val viewModelFactory = TransactionViewModelFactory(dao, employeeDao)
+        // 1. Inisialisasi Firebase (PENTING)
+        // Pastikan google-services.json sudah ada di folder app
+        FirebaseApp.initializeApp(this)
 
-        scheduleDailyBackup()
+        // 2. Siapkan Repository (Cloud Firestore)
+        val repository = FirestoreRepository()
 
+        // 3. Siapkan ViewModel Factory
+        // Factory ini akan membuat TransactionViewModel dengan menyuntikkan repository
+        val viewModelFactory = TransactionViewModelFactory(repository)
 
         setContent {
-            MyApplicationTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            // Gunakan Tema Aplikasi
+            MyApplicationTheme() {
+                Surface(color = MaterialTheme.colorScheme.background) {
 
-                    // 2. Siapkan Navigasi
                     val navController = rememberNavController()
 
-                    // 3. Ambil ViewModel
+                    // Inisialisasi ViewModel (Single Instance untuk seluruh aplikasi)
                     val viewModel: TransactionViewModel = viewModel(factory = viewModelFactory)
 
-                    NavHost(navController = navController, startDestination = "login") {
+                    // State Login Sederhana
+                    // (Idealnya menggunakan FirebaseAuth listener, tapi ini cukup untuk MVP)
+                    var isLoggedIn by remember { mutableStateOf(false) }
+
+                    // --- NAVIGASI UTAMA ---
+                    NavHost(
+                        navController = navController,
+                        startDestination = if (isLoggedIn) "dashboard" else "login"
+                    ) {
 
                         // 1. HALAMAN LOGIN
                         composable("login") {
                             LoginScreen(
                                 onLoginSuccess = {
-                                    // Jika sukses, masuk dashboard dan hapus login dari history (agar tombol back tidak balik ke login)
+                                    // Login Berhasil
+                                    isLoggedIn = true
+
+                                    // PENTING: Ambil data cabang user agar Dashboard menyesuaikan tampilan
+                                    viewModel.fetchUserBranch()
+
+                                    // Pindah ke Dashboard & Hapus Login dari Backstack
                                     navController.navigate("dashboard") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -74,20 +85,20 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
-                        // Halaman Dashboard
+                        // 2. DASHBOARD
                         composable("dashboard") {
                             DashboardScreen(
-                                viewModel = viewModel, // <--- TAMBAHKAN BARIS INI (Kirim ViewModel ke Dashboard)
+                                viewModel = viewModel,
                                 onAddClick = { navController.navigate("add_transaction") },
-                                onPayrollClick ={navController.navigate("employee_list")},
-                                onReportClick={navController.navigate("report_screen")},
-                                onTrashClick = {navController.navigate("trashbin")},
-                                onSettingsClick = {navController.navigate("Settings")},
+                                onPayrollClick = { navController.navigate("employee_list") },
+                                onReportClick = { navController.navigate("report_screen") },
+                                onTrashClick = { navController.navigate("trashbin") },
+                                onSettingsClick = { navController.navigate("settings") },
                                 onEditTransaction = { navController.navigate("edit_transaction") }
                             )
                         }
 
-                        // Halaman Input
+                        // 3. TAMBAH TRANSAKSI
                         composable("add_transaction") {
                             AddTransactionScreen(
                                 viewModel = viewModel,
@@ -95,70 +106,81 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
-                        composable("employee_list") {
-                            EmployeeListScreen(
-                                viewModel = viewModel,
-                                onNavigateBack = { navController.popBackStack() }
-                            )
-                        }
-                        composable("report_screen") {
-                            ReportScreen( // Pastikan nama file ini sesuai dengan yang Anda buat
-                                viewModel = viewModel,
-                                onNavigateBack = { navController.popBackStack() }
-                            )
-                        }
-                        composable("trashbin"){
-                            TrashbinScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
-                        }
+                        // 4. EDIT TRANSAKSI
                         composable("edit_transaction") {
                             EditTransactionScreen(
                                 viewModel = viewModel,
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
+
+                        // 5. MANAJEMEN PEGAWAI
+                        composable("employee_list") {
+                            EmployeeListScreen(
+                                viewModel = viewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        // 6. LAPORAN PDF
+                        composable("report_screen") {
+                            ReportScreen(
+                                viewModel = viewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        // 7. TEMPAT SAMPAH (TRASHBIN)
+                        composable("trashbin") {
+                            TrashbinScreen(
+                                viewModel = viewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        // 8. PENGATURAN
+                        // 8. PENGATURAN
                         composable("settings") {
                             SettingsScreen(
-                                viewModel = viewModel, // <-- KIRIM VIEWMODEL
+                                viewModel = viewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onLogout = {
+                                    // Logika Logout: Pindah ke Login & Hapus semua riwayat layar sebelumnya
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                },
+                                onNavigateToTrash = { navController.navigate("trashbin") },
+                                onNavigateToReport = { navController.navigate("report") }
+                            )
+                        }
+                        composable("trashbin") {
+                            TrashbinScreen(
+                                viewModel = viewModel,
                                 onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("report") {
+                            ReportScreen(
+                                viewModel = viewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable(
+                            route = "employee_list?targetId={targetId}",
+                            arguments = listOf(navArgument("targetId") { nullable = true; type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val targetId = backStackEntry.arguments?.getString("targetId")
+                            EmployeeListScreen(
+                                viewModel = viewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                targetEmployeeId = targetId // Pasang di sini
                             )
                         }
                     }
                 }
             }
         }
-    }
-
-    private fun scheduleDailyBackup() {
-
-        val workManager = WorkManager.getInstance(applicationContext)
-
-        // A. Hitung waktu menuju jam 12:00 malam (00:00)
-        val currentDate = Calendar.getInstance()
-        val dueDate = Calendar.getInstance()
-
-        // Set target ke jam 00:00:00
-        dueDate.set(Calendar.HOUR_OF_DAY, 0)
-        dueDate.set(Calendar.MINUTE, 0)
-        dueDate.set(Calendar.SECOND, 0)
-
-        // Jika jam 00:00 sudah lewat hari ini, jadwalkan untuk besok
-        if (dueDate.before(currentDate)) {
-            dueDate.add(Calendar.HOUR_OF_DAY, 24)
-        }
-
-        val timeDiff = dueDate.timeInMillis - currentDate.timeInMillis
-
-        // B. Buat Permintaan Kerja Berkala (Setiap 24 Jam)
-        val backupRequest = PeriodicWorkRequestBuilder<AutoBackupWorker>(24, TimeUnit.HOURS)
-            .setInitialDelay(1, TimeUnit.SECONDS) // Tunggu sampai jam 12 malam
-            .addTag("daily_backup")
-            .build()
-
-        // C. Kirim ke Sistem (KEEP = Jangan diduplikasi kalau sudah ada)
-        workManager.enqueueUniquePeriodicWork(
-            "DailyBackupJob",
-            ExistingPeriodicWorkPolicy.KEEP,
-            backupRequest
-        )
     }
 }

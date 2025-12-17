@@ -1,9 +1,9 @@
 package com.loganes.finace
 
-import com.loganes.finace.data.FinanceCalculator
-import com.loganes.finace.model.BranchType
-import com.loganes.finace.model.Transaction
-import com.loganes.finace.model.TransactionType
+import com.loganes.finace.utils.FinanceCalculator
+import com.loganes.finace.data.model.BranchType
+import com.loganes.finace.data.model.Transaction
+import com.loganes.finace.data.model.TransactionType
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 
